@@ -1,0 +1,13 @@
+The Create MP3 Plugin
+===========================
+Note that the script assumes that you specify the shell script to be executed, using the :BOOK: placeholder to represent where the book's path should be passed into the command
+
+Command path examples
+---------------------------
+python generate_mp3.py true :BOOK: Sonia_GB --speed 2
+
+/users/bob/dev/gen_mp3/.venv/scripts/python /users/bob/dev/gen_mp3/generate_mp3.py :BOOK: --voice Sonia_GB --speed 2
+
+Created by Thomas Long
+
+Requires calibre >= 8.0.0
