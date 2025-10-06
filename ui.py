@@ -6,9 +6,9 @@ from calibre_plugins.create_mp3.main import CreateMP3Dialog
 
 class CreateMP3Plugin(InterfaceAction):
 
-    name = "Create MP3 File"
+    name = "Create MP3"
 
-    action_spec = ("Create MP3 File", None, "Run the Create MP3 File", "Ctrl+Shift+F1")
+    action_spec = ("Create MP3", None, "Run Create MP3", "Ctrl+Shift+F1")
 
     def genesis(self):
         icon = get_icons("create_mp3.png", "Create MP3")
