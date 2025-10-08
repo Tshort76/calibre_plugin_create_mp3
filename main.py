@@ -30,7 +30,7 @@ class CreateMP3Dialog(QDialog):
         self.setWindowTitle("Create MP3 Plugin")
         self.setWindowIcon(icon)
 
-        self.check_prefs_button = QPushButton("Create MP3s", self)
+        self.check_prefs_button = QPushButton("Create MP3(s)", self)
         self.check_prefs_button.clicked.connect(self.create_mp3s)
         self.l.addWidget(self.check_prefs_button, 0, 0, 1, 2)
 

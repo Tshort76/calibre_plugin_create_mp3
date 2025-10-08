@@ -58,6 +58,7 @@ def run_script_worker(commands: list[list[str]], log, abort, notifications):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 universal_newlines=True,
+                creationflags=subprocess.CREATE_NO_WINDOW,
                 bufsize=1,  # Line buffered
             )
 
