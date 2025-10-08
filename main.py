@@ -10,6 +10,11 @@ from calibre_plugins.create_mp3.job import run_external_script
 BOOK_PLACEHOLDER = ":BOOK:"
 
 
+def _dict_to_str(d: dict) -> str:
+    "Special format needed for passing in shell command"
+    return '"' + str(d).replace("'", "'") + '"'
+
+
 class CreateMP3Dialog(QDialog):
 
     def __init__(self, gui, icon, do_user_config):
@@ -43,7 +48,7 @@ class CreateMP3Dialog(QDialog):
         text = get_resources("about.txt")
         QMessageBox.about(self, "About the Create MP3 Plugin", text.decode("utf-8"))
 
-    def _execute_tts(self, book_paths: list[str]):
+    def _execute_tts(self, paths_meta: list[tuple[str, str]]):
         _command_str = prefs.get("run_tts_command", None)
         if not (_command_str and BOOK_PLACEHOLDER in _command_str):
             error_dialog(
@@ -55,11 +60,18 @@ class CreateMP3Dialog(QDialog):
             return
 
         _command = shlex.split(_command_str)
-        _idx = _command.index(BOOK_PLACEHOLDER)
+        book_idx = _command.index(BOOK_PLACEHOLDER)
+        meta_idx = None
+        try:
+            meta_idx = _command.index(":META:")
+        except ValueError:
+            pass
 
         commands = []
-        for path in book_paths:
-            _command[_idx] = path
+        for path, meta in paths_meta:
+            _command[book_idx] = path
+            if meta_idx is not None:
+                _command[meta_idx] = meta
             commands.append(_command)
 
         run_external_script(self.gui, commands)
@@ -73,9 +85,13 @@ class CreateMP3Dialog(QDialog):
 
         paths = []
         for book_id in book_ids:
+            m = self.db.get_metadata(book_id, index_is_id=True)
+            cover_path = self.db.cover(book_id, index_is_id=True, as_path=True)
+            _meta = {"title": m.title, "author": m.authors[0], "image_path": cover_path}
+            meta_str = _dict_to_str(_meta)
             for fmt in ["txt", "epub", "pdf"]:
                 if file_path := self.db.format_abspath(book_id, fmt, index_is_id=True):
-                    paths.append(file_path)
+                    paths.append((file_path, meta_str))
                     break
 
         self._execute_tts(paths)
