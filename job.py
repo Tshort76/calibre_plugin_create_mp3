@@ -4,16 +4,24 @@ import subprocess, os
 DASHED_LINE = "-" * 50
 
 
-def run_external_script(gui, commands):
-    """Start the external script as a threaded job"""
+def _get_book_name(command: list[str]) -> str:
+    for p in command:
+        for ext in [".txt", ".epub", ".pdf"]:
+            if ext in p:
+                return os.path.basename(p)
+    return " ".join(command)[-60:]
 
+
+def run_external_script(gui, commands):
     # Passing a vector as a positional argument to ThreadedJob was throwing errors ... so wrap it
     def worker_wrapper(log, abort, notifications):
         return run_script_worker(commands, log=log, abort=abort, notifications=notifications)
 
+    job_name = "Create MP3 : " + ", ".join(map(_get_book_name, commands))
+
     job = ThreadedJob(
         "external_script_runner",
-        "Running external script",
+        job_name,
         worker_wrapper,
         (),
         {},
@@ -23,15 +31,7 @@ def run_external_script(gui, commands):
     )
 
     gui.job_manager.run_threaded_job(job)
-    gui.status_bar.show_message("External script job started...", 3000)
-
-
-def _get_book_name(command: list[str]) -> str:
-    for p in command:
-        for ext in [".txt", ".epub", ".pdf"]:
-            if ext in p:
-                return os.path.basename(p)
-    return " ".join(command)[-60:]
+    gui.status_bar.show_message("MP3 conversion started...", 3000)
 
 
 def run_script_worker(commands: list[list[str]], log, abort, notifications):
@@ -87,9 +87,10 @@ def run_script_worker(commands: list[list[str]], log, abort, notifications):
 
             if stderr:
                 stderr_lines = stderr.strip().split("\n")
+                stderr_lines = list(filter(lambda x: ".venv\Lib" not in x, stderr_lines))
                 log("\n--- Error Output ---")
                 for err_line in stderr_lines:
-                    if err_line:
+                    if err_line and ".venv":
                         log(err_line)
 
             if process.returncode == 0:
