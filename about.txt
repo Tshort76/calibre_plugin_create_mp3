@@ -1,18 +1,29 @@
 The Create MP3 Plugin
 ===========================
-Note that the script assumes that you specify the shell script to be executed, using the :BOOK: placeholder to represent where the book's path should be passed into the command
+Created by Thomas Long
+Requires calibre >= 8.0.0
+===========================
+This plugin allows the user to easily pass a book's meta and file_path to a script.
+There is the assumption that the script is capable of converting EPUB, PDF, or TXT files to audio files.
+
+If you do not have a way to do this (e.g. call an LLM with an API Key), you can use the https://github.com/Tshort76/echo 
+library, which leverages edge-tts under the hood for text-to-speech (and has some data cleaning logic to improve the read out).
+
+I assume that the script takes at least an absolute filepath to the book, :BOOK:
+Optionally, you can also use the :META: placeholder to pass the ebook's meta data to your script
 
 Command path examples
----------------------------
+----------------------------
 python generate_mp3.py :BOOK: -v en-HK-YanNeural -m :META:
 
 /users/bob/dev/gen_mp3/.venv/scripts/python /users/bob/dev/gen_mp3/create_audio.py :BOOK: -v en-HK-YanNeural -s 1.5 -m :META:
 
-Created by Thomas Long
 
-Requires calibre >= 8.0.0
+Edge-TTS Voices
+----------------------------
+Visit https://tts.travisvn.com/ to hear sample recordings of the voices available through edge-tts
 
-English Voices
+List of English voices
 ----------------------------
 en-AU-NatashaNeural
 en-AU-WilliamMultilingualNeural
