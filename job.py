@@ -1,7 +1,9 @@
 from calibre.gui2.threaded_jobs import ThreadedJob
 import subprocess, os
+import re
 
 DASHED_LINE = "-" * 50
+PROGRESS_RGX = re.compile(r"Progress Report: (\d+)%")
 
 
 def _get_book_name(command: list[str]) -> str:
@@ -34,6 +36,11 @@ def run_external_script(gui, commands):
     gui.status_bar.show_message("MP3 conversion started...", 3000)
 
 
+def _parse_progress(s: str) -> float:
+    if m := PROGRESS_RGX.findall(s):
+        return m[0]
+
+
 def run_script_worker(commands: list[list[str]], log, abort, notifications):
 
     log(f"Processing {len(commands)} book(s)")
@@ -62,8 +69,7 @@ def run_script_worker(commands: list[list[str]], log, abort, notifications):
                 bufsize=1,  # Line buffered
             )
 
-            stdout_lines = []
-            stderr_lines = []
+            stdout_lines, _progress = [], 0
 
             while True:
                 if abort is not None and abort.is_set():
@@ -78,6 +84,9 @@ def run_script_worker(commands: list[list[str]], log, abort, notifications):
                 # Remove trailing newline and log immediately
                 line = line.rstrip("\n\r")
                 if line:  # Only log non-empty lines
+                    if "Progress Report:" in line:
+                        _progress = max(_progress, _parse_progress(line))
+                        notifications.put((_progress, f"chunking"))
                     log(line)
                     stdout_lines.append(line)
 
@@ -87,10 +96,9 @@ def run_script_worker(commands: list[list[str]], log, abort, notifications):
 
             if stderr:
                 stderr_lines = stderr.strip().split("\n")
-                stderr_lines = list(filter(lambda x: ".venv\Lib" not in x, stderr_lines))
                 log("\n--- Error Output ---")
                 for err_line in stderr_lines:
-                    if err_line and ".venv":
+                    if err_line:
                         log(err_line)
 
             if process.returncode == 0:
